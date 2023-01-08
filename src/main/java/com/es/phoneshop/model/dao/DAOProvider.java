@@ -3,10 +3,19 @@ package com.es.phoneshop.model.dao;
 import com.es.phoneshop.model.dao.impl.ArrayListProductDao;
 
 public class DAOProvider {
-    private static final DAOProvider INSTANCE = new DAOProvider();
+    private static DAOProvider INSTANCE;
 
     public static DAOProvider getInstance() {
-        return INSTANCE;
+        DAOProvider localInstance = INSTANCE;
+        if (localInstance == null) {
+            synchronized (DAOProvider.class) {
+                localInstance = INSTANCE;
+                if (localInstance == null) {
+                    INSTANCE = localInstance = new DAOProvider();
+                }
+            }
+        }
+        return localInstance;
     }
     private final ProductDao productDao = new ArrayListProductDao();
 
