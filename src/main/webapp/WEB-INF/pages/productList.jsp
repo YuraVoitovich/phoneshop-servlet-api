@@ -8,6 +8,10 @@
   <p>
     Welcome to Expert-Soft training!
   </p>
+  <form>
+    <input name="query">
+    <button>Search</button>
+  </form>
   <table>
     <thead>
       <tr>
@@ -16,6 +20,7 @@
         <td class="price">Price</td>
       </tr>
     </thead>
+
     <c:forEach var="product" items="${products}">
       <tr>
         <td>
