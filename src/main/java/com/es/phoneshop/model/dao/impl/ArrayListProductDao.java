@@ -5,6 +5,7 @@ import com.es.phoneshop.model.dao.enums.SortOrder;
 import com.es.phoneshop.model.entity.Product;
 import com.es.phoneshop.model.dao.ProductDao;
 import com.es.phoneshop.model.exception.NoSuchProductException;
+import com.es.phoneshop.utils.Pair;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -57,28 +58,32 @@ public class ArrayListProductDao implements ProductDao {
         return counter;
     }
 
-    private Comparator<Object> createQueryComparator(Pattern pattern) {
+    private Comparator<Object> createQueryComparator() {
 
-        return Collections.reverseOrder(Comparator.comparingInt(object -> {
-            Product product = (Product) object;
-            Matcher matcher = pattern.matcher(product.getDescription());
-            return countMatches(matcher);
-        }).thenComparing(Collections
-                .reverseOrder(Comparator
-                        .comparingInt(o -> { Product p = (Product)o; return p.getDescription().length(); }))));
+        return Collections.reverseOrder(Comparator.comparingInt(o -> ((Pair<Product, Integer>)o).snd)
+                        .reversed()
+                .thenComparing(object -> ((Pair<Product, Integer>)object).fst.getDescription().length())
+                .reversed());
+    }
+
+    private int countMatches(Pattern pattern, String description) {
+        Matcher matcher = pattern.matcher(description);
+        return countMatches(matcher);
     }
     private List<Product> processQuery(Stream<Product> filteredStream, String query, Comparator<Object> sortComparator) {
         List<Product> foundProducts;
 
         Pattern pattern = Pattern.compile(Arrays.stream(query.trim().split("\\s"))
                 .map(o -> "(" + o + ")").collect(Collectors.joining("|")));
-        Comparator<Object> resultComparator = sortComparator == null ? createQueryComparator(pattern)
-                : createQueryComparator(pattern).thenComparing(sortComparator);
-        foundProducts = filteredStream.filter(currentProduct -> {
-                    Matcher matcher = pattern.matcher(currentProduct.getDescription());
-                    return countMatches(matcher) > 0;
-                })
+        Comparator<Object> resultComparator = sortComparator == null ? createQueryComparator()
+                : createQueryComparator()
+                .thenComparing((o1,o2) -> sortComparator
+                        .compare(((Pair<Product, Integer>)o1).fst, ((Pair<Product, Integer>)o2).fst));
+        foundProducts = filteredStream
+                .map(o -> new Pair<Product, Integer>(o, countMatches(pattern, o.getDescription())))
+                .filter(o -> o.snd > 0)
                 .sorted(resultComparator)
+                .map(o -> o.fst)
                 .collect(Collectors.toList());
         return foundProducts;
     }
