@@ -58,17 +58,18 @@ public class ArrayListProductDao implements ProductDao {
         } else {
             Pattern pattern = Pattern.compile(Arrays.stream(query.trim().split("\\s"))
                     .map(o -> "(" + o + ")").collect(Collectors.joining("|")));
-            Comparator<Object> comparator = Comparator.comparingInt(object -> {
+            Comparator<Object> queryComparator = Comparator.comparingInt(object -> {
                 Product product = (Product) object;
                 Matcher matcher = pattern.matcher(product.getDescription());
                 return countMatches(matcher);
-            }).thenComparing(Collections.reverseOrder(Comparator.comparingInt(o -> { Product p = (Product)o; return p.getDescription().length(); })));
+            }).thenComparing(Collections
+                    .reverseOrder(Comparator.comparingInt(o -> { Product p = (Product)o; return p.getDescription().length(); })));
 
             foundProducts = stream.filter(currentProduct -> {
                         Matcher matcher = pattern.matcher(currentProduct.getDescription());
                         return countMatches(matcher) > 0;
                     })
-                    .sorted(comparator)
+                    .sorted(queryComparator)
                     .collect(Collectors.toList());
             Collections.reverse(foundProducts);
         }
