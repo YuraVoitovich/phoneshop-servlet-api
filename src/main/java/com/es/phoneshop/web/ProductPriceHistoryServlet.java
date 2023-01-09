@@ -21,6 +21,11 @@ public class ProductPriceHistoryServlet extends HttpServlet {
         productDao = DAOProvider.getInstance().getProductDao();
     }
 
+    public void init(ServletConfig config, ProductDao dao) throws ServletException {
+        super.init(config);
+        productDao = dao;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String[] requestPath = request.getPathInfo().split("/");
