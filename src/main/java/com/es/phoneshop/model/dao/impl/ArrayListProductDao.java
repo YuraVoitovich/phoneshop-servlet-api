@@ -1,5 +1,7 @@
 package com.es.phoneshop.model.dao.impl;
 
+import com.es.phoneshop.model.dao.enums.SortField;
+import com.es.phoneshop.model.dao.enums.SortOrder;
 import com.es.phoneshop.model.entity.Product;
 import com.es.phoneshop.model.dao.ProductDao;
 import com.es.phoneshop.model.exception.NoSuchProductException;
@@ -20,11 +22,19 @@ public class ArrayListProductDao implements ProductDao {
     private final Lock writeLock;
     private final Lock readLock;
 
+    private final EnumMap<SortField, Comparator<Object>> sortFieldComparators;
+
     public ArrayListProductDao() {
         this.products = new ArrayList<>();
         ReadWriteLock lock = new ReentrantReadWriteLock();
         this.writeLock = lock.writeLock();
         this.readLock = lock.readLock();
+        sortFieldComparators = new EnumMap<>(SortField.class);
+        sortFieldComparators.put(SortField.DESCRIPTION,
+                Comparator.comparing(o -> ((Product) o).getDescription()));
+        sortFieldComparators.put(SortField.PRICE,
+                Comparator.comparing(o -> ((Product) o).getPrice()));
+
     }
 
     @Override
@@ -46,32 +56,65 @@ public class ArrayListProductDao implements ProductDao {
         }
         return counter;
     }
+
+    private Comparator<Object> createQueryComparator(Pattern pattern) {
+
+        return Collections.reverseOrder(Comparator.comparingInt(object -> {
+            Product product = (Product) object;
+            Matcher matcher = pattern.matcher(product.getDescription());
+            return countMatches(matcher);
+        }).thenComparing(Collections
+                .reverseOrder(Comparator
+                        .comparingInt(o -> { Product p = (Product)o; return p.getDescription().length(); }))));
+    }
+    private List<Product> processQuery(Stream<Product> filteredStream, String query, Comparator<Object> sortComparator) {
+        List<Product> foundProducts;
+
+        Pattern pattern = Pattern.compile(Arrays.stream(query.trim().split("\\s"))
+                .map(o -> "(" + o + ")").collect(Collectors.joining("|")));
+        Comparator<Object> resultComparator = sortComparator == null ? createQueryComparator(pattern)
+                : createQueryComparator(pattern).thenComparing(sortComparator);
+        foundProducts = filteredStream.filter(currentProduct -> {
+                    Matcher matcher = pattern.matcher(currentProduct.getDescription());
+                    return countMatches(matcher) > 0;
+                })
+                .sorted(resultComparator)
+                .collect(Collectors.toList());
+        return foundProducts;
+    }
+
+    private List<Product> processEmptyQuery(Stream<Product> filteredStream, Comparator<Object> sortComparator) {
+        return sortComparator == null ? filteredStream.collect(Collectors.toList())
+                : filteredStream.sorted(sortComparator).collect(Collectors.toList());
+    }
+
+    private Comparator<Object> createSortComparator(SortField sortField, SortOrder sortOrder) {
+        Comparator<Object> sortComparator;
+        if (sortField == null) {
+            sortComparator = null;
+        } else {
+            if (sortOrder == null) {
+                sortOrder = SortOrder.ASC;
+            }
+            sortComparator = sortFieldComparators.get(sortField);
+            if (sortOrder == SortOrder.DESC) {
+                sortComparator = sortComparator.reversed();
+            }
+        }
+        return sortComparator;
+    }
     @Override
-    public List<Product> findProducts(String query) {
+    public List<Product> findProducts(String query, SortField sortField, SortOrder sortOrder) {
         readLock.lock();
         List<Product> foundProducts;
-        Stream<Product> stream = products.stream()
+        Stream<Product> filteredStream = products.stream()
                 .filter(currentProduct -> currentProduct.getPrice() != null)
                 .filter(currentProduct -> currentProduct.getStock() > 0);
+        Comparator<Object> sortComparator = createSortComparator(sortField, sortOrder);
         if (query == null || query.isEmpty()) {
-            foundProducts = stream.collect(Collectors.toList());
+            foundProducts = processEmptyQuery(filteredStream, sortComparator);
         } else {
-            Pattern pattern = Pattern.compile(Arrays.stream(query.trim().split("\\s"))
-                    .map(o -> "(" + o + ")").collect(Collectors.joining("|")));
-            Comparator<Object> queryComparator = Comparator.comparingInt(object -> {
-                Product product = (Product) object;
-                Matcher matcher = pattern.matcher(product.getDescription());
-                return countMatches(matcher);
-            }).thenComparing(Collections
-                    .reverseOrder(Comparator.comparingInt(o -> { Product p = (Product)o; return p.getDescription().length(); })));
-
-            foundProducts = stream.filter(currentProduct -> {
-                        Matcher matcher = pattern.matcher(currentProduct.getDescription());
-                        return countMatches(matcher) > 0;
-                    })
-                    .sorted(queryComparator)
-                    .collect(Collectors.toList());
-            Collections.reverse(foundProducts);
+            foundProducts = processQuery(filteredStream, query,sortComparator);
         }
 
         readLock.unlock();

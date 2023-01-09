@@ -9,15 +9,21 @@
     Welcome to Expert-Soft training!
   </p>
   <form>
-    <input name="query">
+    <input name="query" value="${param.query}">
     <button>Search</button>
   </form>
   <table>
     <thead>
       <tr>
         <td>Image</td>
-        <td>Description</td>
-        <td class="price">Price</td>
+        <td>Description
+          <a href="?sortfield=DESCRIPTION&order=ASC&query=${param.query}">asc</a>
+          <a href="?sortfield=DESCRIPTION&order=DESC&query=${param.query}">desc</a>
+        </td>
+        <td class="price">
+          <a href="?sortfield=PRICE&order=ASC&query=${param.query}">asc</a>
+          <a href="?sortfield=PRICE&order=DESC&query=${param.query}">desc</a>
+        </td>
       </tr>
     </thead>
 
