@@ -42,11 +42,15 @@ public class ArrayListProductDao implements ProductDao {
     public Product getProduct(Long id) {
         if (id == null) throw new IllegalArgumentException("Id can not be null");
         readLock.lock();
-        Product product = products.stream()
-                .filter(currentProduct -> id.equals(currentProduct.getId()))
-                .findAny()
-                .orElseThrow(() -> new NoSuchProductException(String.format("Product with id=%s not found", id)));
-        readLock.unlock();
+        Product product;
+        try {
+            product = products.stream()
+                    .filter(currentProduct -> id.equals(currentProduct.getId()))
+                    .findAny()
+                    .orElseThrow(() -> new NoSuchProductException(String.format("Product with id=%s not found", id)));
+        } finally {
+            readLock.unlock();
+        }
         return product;
     }
 
@@ -110,19 +114,21 @@ public class ArrayListProductDao implements ProductDao {
     }
     @Override
     public List<Product> findProducts(String query, SortField sortField, SortOrder sortOrder) {
-        readLock.lock();
         List<Product> foundProducts;
-        Stream<Product> filteredStream = products.stream()
-                .filter(currentProduct -> currentProduct.getPrice() != null)
-                .filter(currentProduct -> currentProduct.getStock() > 0);
-        Comparator<Object> sortComparator = createSortComparator(sortField, sortOrder);
-        if (query == null || query.isEmpty()) {
-            foundProducts = processEmptyQuery(filteredStream, sortComparator);
-        } else {
-            foundProducts = processQuery(filteredStream, query,sortComparator);
+        readLock.lock();
+        try {
+            Stream<Product> filteredStream = products.stream()
+                    .filter(currentProduct -> currentProduct.getPrice() != null)
+                    .filter(currentProduct -> currentProduct.getStock() > 0);
+            Comparator<Object> sortComparator = createSortComparator(sortField, sortOrder);
+            if (query == null || query.isEmpty()) {
+                foundProducts = processEmptyQuery(filteredStream, sortComparator);
+            } else {
+                foundProducts = processQuery(filteredStream, query, sortComparator);
+            }
+        } finally {
+            readLock.unlock();
         }
-
-        readLock.unlock();
         return foundProducts;
     }
 
@@ -136,28 +142,34 @@ public class ArrayListProductDao implements ProductDao {
     public void save(Product productToSave) {
         if (productToSave == null) throw new IllegalArgumentException("Product to save can not be null");
         writeLock.lock();
-        if (productToSave.getId() != null) {
-            Optional<Product> foundProductOptional = products.stream()
-                    .filter(currentProduct -> currentProduct.getId().equals(productToSave.getId()))
-                    .findAny();
-            if (foundProductOptional.isPresent()) {
-                products.set(products.indexOf(foundProductOptional.get()), productToSave);
+        try {
+            if (productToSave.getId() != null) {
+                Optional<Product> foundProductOptional = products.stream()
+                        .filter(currentProduct -> currentProduct.getId().equals(productToSave.getId()))
+                        .findAny();
+                if (foundProductOptional.isPresent()) {
+                    products.set(products.indexOf(foundProductOptional.get()), productToSave);
+                } else {
+                    addProduct(productToSave);
+                }
             } else {
                 addProduct(productToSave);
             }
-        } else {
-            addProduct(productToSave);
+        } finally {
+            writeLock.unlock();
         }
-        writeLock.unlock();
     }
 
     @Override
     public void delete(Long id) {
         if (id == null) throw new IllegalArgumentException("Id can not be null");
         writeLock.lock();
-        if (!this.products.removeIf(currentProduct -> id.equals(currentProduct.getId())))
-            throw new NoSuchProductException(String.format("Product with id=%s not found for deleting", id));
-        writeLock.unlock();
+        try {
+            if (!this.products.removeIf(currentProduct -> id.equals(currentProduct.getId())))
+                throw new NoSuchProductException(String.format("Product with id=%s not found for deleting", id));
+        } finally {
+            writeLock.unlock();
+        }
     }
 
 
