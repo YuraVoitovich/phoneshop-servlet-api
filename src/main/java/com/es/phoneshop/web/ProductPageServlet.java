@@ -20,6 +20,11 @@ public class ProductPageServlet extends HttpServlet {
         productDao = DAOProvider.getInstance().getProductDao();
     }
 
+    public void init(ServletConfig config, ProductDao productDao) throws ServletException {
+        super.init(config);
+        this.productDao = productDao;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String productId = request.getPathInfo().substring(1);
