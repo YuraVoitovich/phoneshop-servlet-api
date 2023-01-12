@@ -4,7 +4,15 @@
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 
 <tags:master pageTitle="Error">
+    <header>
+        <tags:header/>
+    </header>
     <h1>
         We are sorry, something is wrong :(
     </h1>
+
 </tags:master>
+
+<footer>
+    <tags:footer/>
+</footer>

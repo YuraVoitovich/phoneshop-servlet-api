@@ -32,18 +32,14 @@ public class Product {
         this.stock = stock;
         this.imageUrl = imageUrl;
         this.priceHistoryList = new ArrayList<>();
-        this.priceHistoryList.add(new PriceHistory(this.price, LocalDate.now()));
+        LocalDate ld = LocalDate.now();
+        this.priceHistoryList.add(new PriceHistory(this.price, ld));
+        this.priceHistoryList.add(new PriceHistory(this.price.subtract(new BigDecimal(30)), ld.minusDays(10)));
+        this.priceHistoryList.add(new PriceHistory(this.price.subtract(new BigDecimal(50)), ld.minusDays(30)));
     }
 
     public Product(Long id, String code, String description, BigDecimal price, Currency currency, int stock, String imageUrl) {
+        this(code, description, price, currency, stock, imageUrl);
         this.id = id;
-        this.code = code;
-        this.description = description;
-        this.price = price;
-        this.currency = currency;
-        this.stock = stock;
-        this.imageUrl = imageUrl;
-        this.priceHistoryList = new ArrayList<>();
-        this.priceHistoryList.add(new PriceHistory(this.price, LocalDate.now()));
     }
 }

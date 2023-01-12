@@ -4,10 +4,16 @@
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 
 <jsp:useBean id="products" type="java.util.ArrayList" scope="request"/>
+
 <tags:master pageTitle="Product List">
+
+  <header>
+    <tags:header/>
+  </header>
   <p>
     Welcome to Expert-Soft training!
   </p>
+
   <form>
     <input name="query" value="${param.query}">
     <button>Search</button>
@@ -43,3 +49,7 @@
     </c:forEach>
   </table>
 </tags:master>
+
+<footer>
+  <tags:footer/>
+</footer>

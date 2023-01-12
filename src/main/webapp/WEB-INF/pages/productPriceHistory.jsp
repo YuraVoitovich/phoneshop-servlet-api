@@ -7,6 +7,9 @@
 <jsp:useBean id="currency" type="java.util.Currency" scope="request"/>
 <jsp:useBean id="name" type="java.lang.String" scope="request"/>
 <tags:master pageTitle="Product List">
+  <header>
+    <tags:header/>
+  </header>
   <p>
     ${name}
   </p>
@@ -34,3 +37,7 @@
     </c:forEach>
   </table>
 </tags:master>
+
+<footer>
+  <tags:footer/>
+</footer>

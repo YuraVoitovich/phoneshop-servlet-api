@@ -18,7 +18,9 @@
 <body>
 <tags:master pageTitle="Product Details">
 <table>
-
+    <header>
+        <tags:header/>
+    </header>
     <tr>
         <td>Image</td>
         <td>
@@ -63,4 +65,8 @@
 
 </table>
 </tags:master>
+
+<footer>
+    <tags:footer/>
+</footer>
 </html>

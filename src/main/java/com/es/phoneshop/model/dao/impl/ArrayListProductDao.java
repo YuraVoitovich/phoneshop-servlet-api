@@ -40,7 +40,9 @@ public class ArrayListProductDao implements ProductDao {
 
     @Override
     public Product getProduct(Long id) {
-        if (id == null) throw new IllegalArgumentException("Id can not be null");
+        if (id == null) {
+            throw new IllegalArgumentException("Id can not be null");
+        }
         readLock.lock();
         Product product;
         try {
@@ -79,22 +81,25 @@ public class ArrayListProductDao implements ProductDao {
 
         Pattern pattern = Pattern.compile(Arrays.stream(query.trim().split("\\s"))
                 .map(o -> "(" + o + ")").collect(Collectors.joining("|")));
-        Comparator<Object> resultComparator = sortComparator == null ? createQueryComparator()
-                : createQueryComparator()
-                .thenComparing((o1,o2) -> sortComparator
-                        .compare(((Pair<Product, Integer>)o1).fst, ((Pair<Product, Integer>)o2).fst));
+
         foundProducts = filteredStream
                 .map(o -> new Pair<Product, Integer>(o, countMatches(pattern, o.getDescription())))
                 .filter(o -> o.snd > 0)
-                .sorted(resultComparator)
+                .sorted(createQueryComparator())
                 .map(o -> o.fst)
                 .collect(Collectors.toList());
-        return foundProducts;
+        if (sortComparator == null) {
+            return foundProducts;
+        } else {
+            foundProducts.sort(sortComparator);
+            return foundProducts;
+        }
     }
 
     private List<Product> processEmptyQuery(Stream<Product> filteredStream, Comparator<Object> sortComparator) {
         return sortComparator == null ? filteredStream.collect(Collectors.toList())
                 : filteredStream.sorted(sortComparator).collect(Collectors.toList());
+
     }
 
     private Comparator<Object> createSortComparator(SortField sortField, SortOrder sortOrder) {
