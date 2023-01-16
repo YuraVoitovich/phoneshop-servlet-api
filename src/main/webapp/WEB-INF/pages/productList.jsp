@@ -4,7 +4,7 @@
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 
 <jsp:useBean id="products" type="java.util.ArrayList" scope="request"/>
-
+<jsp:useBean id="recentlyViewed" type="java.util.LinkedList" scope="request"/>
 <tags:master pageTitle="Product List">
 
   <header>
@@ -47,6 +47,18 @@
         </td>
       </tr>
     </c:forEach>
+  </table>
+
+  <table>
+  <c:forEach var="product" items="${recentlyViewed}">
+    <td>
+      <img class="product-tile" src="${product.imageUrl}">
+      <p>
+      <a href = "${pageContext.servletContext.contextPath}/products/${product.id}">${product.description}</a>
+      </p>
+      <fmt:formatNumber value="${product.price}" type="currency" currencySymbol="${product.currency.symbol}"/>
+    </td>
+  </c:forEach>
   </table>
 </tags:master>
 
