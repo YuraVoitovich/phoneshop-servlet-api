@@ -17,15 +17,21 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ArrayListProductDao implements ProductDao {
-
     private final List<Product> products;
     private Long currentId = 1L;
     private final Lock writeLock;
     private final Lock readLock;
-
     private final EnumMap<SortField, Comparator<Object>> sortFieldComparators;
 
-    public ArrayListProductDao() {
+
+    private static class InstanceHolder {
+        private static final ArrayListProductDao INSTANCE = new ArrayListProductDao();
+    }
+    public static ArrayListProductDao getInstance() {
+        return InstanceHolder.INSTANCE;
+    }
+
+    private ArrayListProductDao() {
         this.products = new ArrayList<>();
         ReadWriteLock lock = new ReentrantReadWriteLock();
         this.writeLock = lock.writeLock();
