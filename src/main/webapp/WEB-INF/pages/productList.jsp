@@ -2,9 +2,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
-
+<%@ page import = "com.es.phoneshop.service.impl.RecentlyViewedServiceImpl"%>
 <jsp:useBean id="products" type="java.util.ArrayList" scope="request"/>
-
+<jsp:useBean id="RecentlyViewedServiceImplRecentlyViewed" type="java.util.LinkedList" scope="request"/>
 <tags:master pageTitle="Product List">
 
   <header>
@@ -47,6 +47,18 @@
         </td>
       </tr>
     </c:forEach>
+  </table>
+
+  <table>
+  <c:forEach var="product" items="${RecentlyViewedServiceImplRecentlyViewed}">
+    <td>
+      <img class="product-tile" src="${product.imageUrl}">
+      <p>
+      <a href = "${pageContext.servletContext.contextPath}/products/${product.id}">${product.description}</a>
+      </p>
+      <fmt:formatNumber value="${product.price}" type="currency" currencySymbol="${product.currency.symbol}"/>
+    </td>
+  </c:forEach>
   </table>
 </tags:master>
 

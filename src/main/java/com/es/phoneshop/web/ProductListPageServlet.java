@@ -4,6 +4,8 @@ import com.es.phoneshop.model.dao.DAOProvider;
 import com.es.phoneshop.model.dao.ProductDao;
 import com.es.phoneshop.model.dao.enums.SortField;
 import com.es.phoneshop.model.dao.enums.SortOrder;
+import com.es.phoneshop.service.RecentlyViewedService;
+import com.es.phoneshop.service.impl.RecentlyViewedServiceImpl;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -17,10 +19,13 @@ public class ProductListPageServlet extends HttpServlet {
 
     private ProductDao productDao;
 
+    private RecentlyViewedService recentlyViewedService;
+
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         productDao = DAOProvider.getInstance().getProductDao();
+        recentlyViewedService = DAOProvider.getInstance().getRecentlyViewedService();
     }
 
     @Override
@@ -28,6 +33,8 @@ public class ProductListPageServlet extends HttpServlet {
         SortField sortField = Optional.ofNullable(request.getParameter("sortfield")).map(SortField::valueOf).orElse(null);
         SortOrder sortOrder = Optional.ofNullable(request.getParameter("order")).map(SortOrder::valueOf).orElse(null);
         String query = request.getParameter("query");
+        request.setAttribute(RecentlyViewedServiceImpl.RECENTLY_VIEWED_ATTRIBUTE, recentlyViewedService
+                .getRecentlyViewedBySession(request.getSession()));
         request.setAttribute("products", productDao.findProducts(query, sortField, sortOrder));
         request.getRequestDispatcher("/WEB-INF/pages/productList.jsp").forward(request, response);
     }
