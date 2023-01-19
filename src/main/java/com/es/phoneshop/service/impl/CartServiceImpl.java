@@ -17,12 +17,25 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class CartServiceImpl implements CartService {
 
-    private static class InstanceHolder {
-        private static final CartServiceImpl INSTANCE = new CartServiceImpl();
+    public final static String CART_ATTRIBUTE = CartServiceImpl.class.getSimpleName() + "-cart";
+
+    private static volatile CartServiceImpl instance;
+
+    public static CartServiceImpl getInstance(ProductDao productDao) {
+        CartServiceImpl localInstance = instance;
+        if (localInstance == null) {
+            synchronized (CartServiceImpl.class) {
+                localInstance = instance;
+                if (localInstance == null) {
+                    instance = localInstance = new CartServiceImpl(productDao);
+                }
+            }
+        }
+        return localInstance;
     }
-    public static CartServiceImpl getInstance()
-    {
-        return CartServiceImpl.InstanceHolder.INSTANCE;
+
+    public static CartServiceImpl getInstance() {
+        return getInstance(DAOProvider.getInstance().getProductDao());
     }
     private final Map<HttpSession, Cart> carts;
     private final ProductDao productDao;
@@ -31,21 +44,22 @@ public class CartServiceImpl implements CartService {
 
     private final Lock writeLock;
 
-    public CartServiceImpl() {
+    private CartServiceImpl(ProductDao productDao) {
         this.carts = new HashMap<>();
-        this.productDao = DAOProvider.getInstance().getProductDao();
+        this.productDao = productDao;
         ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
         readLock = lock.readLock();
         writeLock = lock.writeLock();
     }
 
 
-    private void checkIsCanBeAdded(int quantity, int stock) {
+    private void checkIfCanBeAdded(int quantity, int stock) {
         if (stock < quantity) {
             throw new OutOfStockException(quantity, stock);
         }
     }
 
+    @Override
     public Cart getCartBySession(HttpSession session) {
         readLock.lock();
         Cart cart = null;
@@ -65,10 +79,13 @@ public class CartServiceImpl implements CartService {
         } finally {
             writeLock.unlock();
         }
-        session.setAttribute("cart", cart);
+        session.setAttribute(CART_ATTRIBUTE, cart);
         return cart;
     }
 
+    private void increaseQuantity(CartItem cartItem, int increaseValue) {
+        cartItem.setQuantity(cartItem.getQuantity() + increaseValue);
+    }
     @Override
     public void add(HttpSession session, Long productId, int quantity) {
         Cart cart = getCartBySession(session);
@@ -81,10 +98,10 @@ public class CartServiceImpl implements CartService {
 
             if (cartItemOptional.isPresent()) {
                 int realQuantity = quantity + cartItemOptional.get().getQuantity();
-                checkIsCanBeAdded(realQuantity, product.getStock());
-                cartItemOptional.get().increaseQuantity(quantity);
+                checkIfCanBeAdded(realQuantity, product.getStock());
+                increaseQuantity(cartItemOptional.get(), quantity);
             } else {
-                checkIsCanBeAdded(quantity, product.getStock());
+                checkIfCanBeAdded(quantity, product.getStock());
                 cart.add(new CartItem(product, quantity));
             }
         }

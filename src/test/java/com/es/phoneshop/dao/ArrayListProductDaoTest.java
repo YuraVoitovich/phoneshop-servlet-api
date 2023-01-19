@@ -1,4 +1,4 @@
-package com.es.phoneshop;
+package com.es.phoneshop.dao;
 
 import com.es.phoneshop.model.dao.ProductDao;
 import com.es.phoneshop.model.dao.enums.SortField;

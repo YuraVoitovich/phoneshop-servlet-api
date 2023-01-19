@@ -10,6 +10,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class RecentlyViewedServiceImpl implements RecentlyViewedService {
 
+    public static final String RECENTLY_VIEWED_ATTRIBUTE = RecentlyViewedServiceImpl.class.getSimpleName() + "RecentlyViewed";
     private static class InstanceHolder {
         private static final RecentlyViewedServiceImpl INSTANCE = new RecentlyViewedServiceImpl();
     }
@@ -26,13 +27,14 @@ public class RecentlyViewedServiceImpl implements RecentlyViewedService {
 
     private final int recentlyViewedCapacity = 3;
 
-    public RecentlyViewedServiceImpl() {
+    private RecentlyViewedServiceImpl() {
         usersRecentlyViewed = new HashMap<>();
         ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
         readLock = lock.readLock();
         writeLock = lock.writeLock();
     }
 
+    @Override
     public List<Product> getRecentlyViewedBySession(HttpSession session) {
         readLock.lock();
         LinkedList<Product> recentlyViewed = null;
@@ -52,7 +54,7 @@ public class RecentlyViewedServiceImpl implements RecentlyViewedService {
         } finally {
             writeLock.unlock();
         }
-        session.setAttribute("recentlyViewed", recentlyViewed);
+        session.setAttribute(RECENTLY_VIEWED_ATTRIBUTE, recentlyViewed);
         return recentlyViewed;
     }
 
@@ -60,6 +62,7 @@ public class RecentlyViewedServiceImpl implements RecentlyViewedService {
         products.remove(product);
         products.addFirst(product);
     }
+    @Override
     public void addProduct(HttpSession session, Product product) {
         LinkedList<Product> products = (LinkedList<Product>)getRecentlyViewedBySession(session);
         synchronized (session) {

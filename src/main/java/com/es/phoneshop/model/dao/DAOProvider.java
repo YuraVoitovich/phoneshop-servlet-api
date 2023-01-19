@@ -1,9 +1,7 @@
 package com.es.phoneshop.model.dao;
 
 import com.es.phoneshop.model.dao.impl.ArrayListProductDao;
-import com.es.phoneshop.service.CartService;
 import com.es.phoneshop.service.RecentlyViewedService;
-import com.es.phoneshop.service.impl.CartServiceImpl;
 import com.es.phoneshop.service.impl.RecentlyViewedServiceImpl;
 
 public class DAOProvider {
@@ -28,6 +26,6 @@ public class DAOProvider {
 
     private DAOProvider() {
         this.productDao = ArrayListProductDao.getInstance();
-        this.recentlyViewedService = new RecentlyViewedServiceImpl();
+        this.recentlyViewedService = RecentlyViewedServiceImpl.getInstance();
     }
 }

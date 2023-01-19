@@ -33,9 +33,11 @@ public class ProductPageServlet extends HttpServlet {
         recentlyViewedService = DAOProvider.getInstance().getRecentlyViewedService();
     }
 
-    public void init(ServletConfig config, ProductDao productDao) throws ServletException {
+    public void init(ServletConfig config, ProductDao productDao, RecentlyViewedService recentlyViewedService, CartService cartService) throws ServletException {
         super.init(config);
         this.productDao = productDao;
+        this.recentlyViewedService = recentlyViewedService;
+        this.cartService = cartService;
     }
 
     @Override
@@ -56,20 +58,21 @@ public class ProductPageServlet extends HttpServlet {
             if (quantity.isEmpty()) {
                 throw new IllegalArgumentException();
             }
+            Integer.parseInt(quantity);
             NumberFormat format = NumberFormat.getInstance(request.getLocale());
             cartService.add(request.getSession(), productId, format.parse(quantity).intValue());
             message = "success";
+        } catch (ParseException | NumberFormatException e) {
+            message = "Quantity should be a number";
         } catch (IllegalArgumentException e) {
             message = "Quantity is empty";
         } catch (OutOfStockException e) {
             message = "Out of stock, available: " + e.getAvailableStock()
                     + ", requested: " + e.getRequestedStock();
-        } catch (ParseException e) {
-            message = "Quantity should be a number";
         }
 
-        response.sendRedirect(request.getContextPath() + "/products/"
-                + productId + "?message=" + message + "&savedQuantity=" + quantity);
+        response.sendRedirect(String.format("%s/products/%d?message=%s&savedQuantity=%s", request.getContextPath(),
+                productId, message, quantity));
 
     }
 

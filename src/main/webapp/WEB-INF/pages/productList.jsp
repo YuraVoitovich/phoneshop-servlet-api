@@ -2,9 +2,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
-
+<%@ page import = "com.es.phoneshop.service.impl.RecentlyViewedServiceImpl"%>
 <jsp:useBean id="products" type="java.util.ArrayList" scope="request"/>
-<jsp:useBean id="recentlyViewed" type="java.util.LinkedList" scope="request"/>
+<jsp:useBean id="RecentlyViewedServiceImplRecentlyViewed" type="java.util.LinkedList" scope="request"/>
 <tags:master pageTitle="Product List">
 
   <header>
@@ -50,7 +50,7 @@
   </table>
 
   <table>
-  <c:forEach var="product" items="${recentlyViewed}">
+  <c:forEach var="product" items="${RecentlyViewedServiceImplRecentlyViewed}">
     <td>
       <img class="product-tile" src="${product.imageUrl}">
       <p>
