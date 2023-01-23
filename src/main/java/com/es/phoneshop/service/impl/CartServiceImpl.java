@@ -5,6 +5,7 @@ import com.es.phoneshop.model.dao.ProductDao;
 import com.es.phoneshop.model.entity.Cart;
 import com.es.phoneshop.model.entity.CartItem;
 import com.es.phoneshop.model.entity.Product;
+import com.es.phoneshop.model.exception.NoSuchCartItemException;
 import com.es.phoneshop.model.exception.OutOfStockException;
 import com.es.phoneshop.service.CartService;
 
@@ -17,7 +18,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class CartServiceImpl implements CartService {
 
-    public final static String CART_ATTRIBUTE = CartServiceImpl.class.getSimpleName() + "-cart";
+    public final static String CART_ATTRIBUTE = CartServiceImpl.class.getSimpleName() + "Cart";
 
     private static volatile CartServiceImpl instance;
 
@@ -60,12 +61,25 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    public void deleteCartItem(HttpSession session, Long productId) {
+        Cart cart = getCartBySession(session);
+        Optional<CartItem> cartItemOptional = findCartItemByProductId(cart, productId);
+        synchronized (session) {
+            cart.getItems().remove(cartItemOptional.orElseThrow(NoSuchCartItemException::new));
+        }
+    }
+
+    @Override
     public Cart getCartBySession(HttpSession session) {
         readLock.lock();
         Cart cart = null;
         try {
             if (carts.containsKey(session)) {
                 cart = carts.get(session);
+                return cart;
+            }
+            cart = (Cart) session.getAttribute(CART_ATTRIBUTE);
+            if (cart != null) {
                 return cart;
             }
 
@@ -89,22 +103,59 @@ public class CartServiceImpl implements CartService {
     @Override
     public void add(HttpSession session, Long productId, int quantity) {
         Cart cart = getCartBySession(session);
-        synchronized (session) {
-            Product product = productDao.getProduct(productId);
+        Product product = productDao.getProduct(productId);
 
-            Optional<CartItem> cartItemOptional = cart.getItems().stream()
-                    .filter(cartItem -> cartItem.getProduct().getId().equals(productId))
-                    .findAny();
+        Optional<CartItem> cartItemOptional = findCartItemByProductId(cart, productId);
+        synchronized (session) {
+
 
             if (cartItemOptional.isPresent()) {
                 int realQuantity = quantity + cartItemOptional.get().getQuantity();
                 checkIfCanBeAdded(realQuantity, product.getStock());
                 increaseQuantity(cartItemOptional.get(), quantity);
+
             } else {
                 checkIfCanBeAdded(quantity, product.getStock());
                 cart.add(new CartItem(product, quantity));
             }
         }
+    }
 
+
+    @Override
+    public boolean update(HttpSession session, Long productId, int quantity) {
+        Cart cart = getCartBySession(session);
+        Product product = productDao.getProduct(productId);
+
+        Optional<CartItem> cartItemOptional = findCartItemByProductId(cart, productId);
+        boolean isChanged = false;
+        synchronized (session) {
+
+
+            if (cartItemOptional.isPresent()) {
+                checkIfCanBeAdded(quantity, product.getStock());
+                if (cartItemOptional.get().getQuantity() != quantity) {
+                    isChanged = true;
+                }
+                cartItemOptional.get().setQuantity(quantity);
+            } else {
+                checkIfCanBeAdded(quantity, product.getStock());
+                cart.add(new CartItem(product, quantity));
+            }
+        }
+        return isChanged;
+    }
+
+    private Optional<CartItem> findCartItemByProductId(Cart cart, Long productId) {
+        Optional<CartItem> cartItemOptional;
+        readLock.lock();
+        try {
+            cartItemOptional = cart.getItems().stream()
+                    .filter(cartItem -> cartItem.getProduct().getId().equals(productId))
+                    .findAny();
+        } finally {
+            readLock.unlock();
+        }
+        return  cartItemOptional;
     }
 }

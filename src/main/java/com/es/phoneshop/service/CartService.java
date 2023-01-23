@@ -7,5 +7,9 @@ import javax.servlet.http.HttpSession;
 public interface CartService {
 
     Cart getCartBySession(HttpSession session);
+
+    boolean update(HttpSession session, Long productId, int quantity);
     void add(HttpSession session, Long productId, int quantity);
+
+    void deleteCartItem(HttpSession session, Long productId);
 }
