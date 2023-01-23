@@ -79,8 +79,8 @@
         <tr>
 
             <td>
-
-                <input name="quantity" value=${empty param.message ? "1" : param.savedQuantity}>
+                <fmt:formatNumber value="${param.quantity}" var="quantity"/>
+                <input class="price" name="quantity" value=${empty param.message ? "1" : param.savedQuantity}>
             </td>
             <td>
                 <button>Add to cart</button>
@@ -89,6 +89,7 @@
 
     </table>
 </form>
+<tags:minicart count="3"/>
 </tags:master>
 
 <footer>
