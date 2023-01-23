@@ -22,6 +22,11 @@ public class DeleteCartItemServlet extends HttpServlet {
         cartService = CartServiceImpl.getInstance();
     }
 
+    public void init(ServletConfig config, CartService cartService) throws ServletException {
+        super.init(config);
+        this.cartService = cartService;
+    }
+
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

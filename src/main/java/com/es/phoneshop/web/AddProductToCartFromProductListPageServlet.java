@@ -1,10 +1,7 @@
 package com.es.phoneshop.web;
 
-import com.es.phoneshop.model.dao.DAOProvider;
-import com.es.phoneshop.model.dao.ProductDao;
 import com.es.phoneshop.model.exception.OutOfStockException;
 import com.es.phoneshop.service.CartService;
-import com.es.phoneshop.service.RecentlyViewedService;
 import com.es.phoneshop.service.impl.CartServiceImpl;
 
 import javax.servlet.ServletConfig;
@@ -17,24 +14,17 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 
 public class AddProductToCartFromProductListPageServlet extends HttpServlet {
-    private ProductDao productDao;
 
     private CartService cartService;
-
-    private RecentlyViewedService recentlyViewedService;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        productDao = DAOProvider.getInstance().getProductDao();
         cartService = CartServiceImpl.getInstance();
-        recentlyViewedService = DAOProvider.getInstance().getRecentlyViewedService();
     }
 
-    public void init(ServletConfig config, ProductDao productDao, RecentlyViewedService recentlyViewedService, CartService cartService) throws ServletException {
+    public void init(ServletConfig config, CartService cartService) throws ServletException {
         super.init(config);
-        this.productDao = productDao;
-        this.recentlyViewedService = recentlyViewedService;
         this.cartService = cartService;
     }
 

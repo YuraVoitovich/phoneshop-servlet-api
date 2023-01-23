@@ -27,6 +27,11 @@ public class CartPageServlet extends HttpServlet {
         cartService = CartServiceImpl.getInstance();
     }
 
+    public void init(ServletConfig config, CartService cartService) throws ServletException {
+        super.init(config);
+        this.cartService = cartService;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute(CartServiceImpl.CART_ATTRIBUTE, cartService.getCartBySession(request.getSession()));
