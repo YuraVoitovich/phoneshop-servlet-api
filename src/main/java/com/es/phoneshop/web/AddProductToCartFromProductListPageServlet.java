@@ -1,11 +1,7 @@
 package com.es.phoneshop.web;
 
-import com.es.phoneshop.model.dao.DAOProvider;
-import com.es.phoneshop.model.dao.ProductDao;
-import com.es.phoneshop.model.entity.Product;
 import com.es.phoneshop.model.exception.OutOfStockException;
 import com.es.phoneshop.service.CartService;
-import com.es.phoneshop.service.RecentlyViewedService;
 import com.es.phoneshop.service.impl.CartServiceImpl;
 
 import javax.servlet.ServletConfig;
@@ -16,14 +12,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
-public class ProductPageServlet extends HttpServlet {
-
-    private ProductDao productDao;
-
-    private CartService cartService;
-
-    private RecentlyViewedService recentlyViewedService;
+public class AddProductToCartFromProductListPageServlet extends HttpServlet {
 
     private final String SUCCESS_MESSAGE = "success";
 
@@ -33,35 +26,36 @@ public class ProductPageServlet extends HttpServlet {
 
     private final String OUT_OF_STOCK_MESSAGE = "Out of stock, available: %d, requested: %d";
 
+    private CartService cartService;
+
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        productDao = DAOProvider.getInstance().getProductDao();
         cartService = CartServiceImpl.getInstance();
-        recentlyViewedService = DAOProvider.getInstance().getRecentlyViewedService();
     }
 
-    public void init(ServletConfig config, ProductDao productDao, RecentlyViewedService recentlyViewedService, CartService cartService) throws ServletException {
+    public void init(ServletConfig config, CartService cartService) throws ServletException {
         super.init(config);
-        this.productDao = productDao;
-        this.recentlyViewedService = recentlyViewedService;
         this.cartService = cartService;
     }
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        Long productId = getProductIdFormPathString(request.getPathInfo());
-        Product product = productDao.getProduct(productId);
-        request.setAttribute("product", product);
-        recentlyViewedService.addProduct(request.getSession(), product);
-        request.getRequestDispatcher("/WEB-INF/pages/product.jsp").forward(request, response);
+    private int findIndex(String[] productIdArray, String productId) {
+        for (int i = 1; i < productIdArray.length; i++) {
+            if (productIdArray[i].equals(productId)) {
+                return i - 1;
+            }
+        }
+        return -1;
     }
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        Long productId = getProductIdFormPathString(request.getPathInfo());
+        String productIdString = request.getParameter("productId");
+        Long productId = Long.parseLong(productIdString);
         String message;
-        String quantity = request.getParameter("quantity").trim();
+
+        String[] productIdArray = request.getParameterValues("productId");
+        String[] quantities = request.getParameterValues("quantity");
+        String quantity = quantities[findIndex(productIdArray, productIdString)];
         try {
             if (quantity.isEmpty()) {
                 throw new IllegalArgumentException();
@@ -75,11 +69,10 @@ public class ProductPageServlet extends HttpServlet {
         } catch (IllegalArgumentException e) {
             message = EMPTY_MESSAGE;
         } catch (OutOfStockException e) {
-            message =  String.format(OUT_OF_STOCK_MESSAGE, e.getAvailableStock()
-                    , e.getRequestedStock());
+            message = String.format(OUT_OF_STOCK_MESSAGE,e.getAvailableStock(), e.getRequestedStock());
         }
 
-        response.sendRedirect(String.format("%s/products/%d?message=%s&savedQuantity=%s", request.getContextPath(),
+        response.sendRedirect(String.format("%s/products?productId=%d&message=%s&savedQuantity=%s", request.getContextPath(),
                 productId, message, quantity));
 
     }
