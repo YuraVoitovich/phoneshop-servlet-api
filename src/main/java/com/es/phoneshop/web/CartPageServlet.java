@@ -19,6 +19,16 @@ public class CartPageServlet extends HttpServlet {
 
     private final String CART_JSP = "/WEB-INF/pages/cart.jsp";
 
+    private final String SUCCESS_MESSAGE = "success";
+
+    private final String NO_A_NUMBER_MESSAGE = "Quantity should be a number";
+
+    private final String EMPTY_MESSAGE = "Quantity is empty";
+
+    private final String OUT_OF_STOCK_MESSAGE = "Out of stock, available: %d, requested: %d";
+
+    private final String ERROR_MESSAGE = "There where errors while updating cart";
+    private final String GENERAL_ERROR_MESSAGE = "Ups, maybe you should put some products first :(";
     private CartService cartService;
 
     @Override
@@ -44,7 +54,7 @@ public class CartPageServlet extends HttpServlet {
         String[] quantities = request.getParameterValues("quantity");
         if(quantities == null) {
             response.sendRedirect(String.format(request.getContextPath() + "/cart?message=%s"
-                    , "Ups, maybe you should put some products first :("));
+                    , GENERAL_ERROR_MESSAGE));
             return;
         }
         Long currentProductId = 0L;
@@ -67,26 +77,25 @@ public class CartPageServlet extends HttpServlet {
                     isChanged = true;
                 }
                 if (isChanged) {
-                    messages.put(currentProductId, "success");
+                    messages.put(currentProductId, SUCCESS_MESSAGE);
                 }
             } catch (ParseException | NumberFormatException e) {
-                messages.put(currentProductId, "Quantity should be a number");
-                message = "There where errors while updating cart";
+                messages.put(currentProductId, NO_A_NUMBER_MESSAGE);
+                message = ERROR_MESSAGE;
             } catch (IllegalArgumentException e) {
-                messages.put(currentProductId, "Quantity is empty");
-                message = "There where errors while updating cart";
+                messages.put(currentProductId, EMPTY_MESSAGE);
+                message = ERROR_MESSAGE;
             } catch (OutOfStockException e) {
-                message = "There where errors while updating cart";
-                messages.put(currentProductId, "Out of stock, available: " + e.getAvailableStock()
-                        + ", requested: " + e.getRequestedStock());
+                message = ERROR_MESSAGE;
+                messages.put(currentProductId, String.format(OUT_OF_STOCK_MESSAGE, e.getAvailableStock(), e.getRequestedStock()));
             }
         }
         request.setAttribute("messages", messages);
         if (message.isEmpty() && isChanged) {
-            message = "success";
+            message = SUCCESS_MESSAGE;
             request.setAttribute("message", message);
         }
-        if (message.equals("success") || message.isEmpty()) {
+        if (message.equals(SUCCESS_MESSAGE) || message.isEmpty()) {
             response.sendRedirect(String.format(request.getContextPath() + "/cart?message=%s", message));
         } else {
             doGet(request, response);

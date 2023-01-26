@@ -15,6 +15,10 @@ public class DeleteCartItemServlet extends HttpServlet {
 
     private CartService cartService;
 
+    private final String SUCCESS_MESSAGE = "Product deleted successfully";
+
+    private final String ERROR_MESSAGE  = "Error while deleting product with id=%s from cart";
+
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -31,11 +35,11 @@ public class DeleteCartItemServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Long productId = getProductIdFormPathString(request.getPathInfo());
-        String message = "Product deleted successfully";
+        String message = SUCCESS_MESSAGE;
         try {
             cartService.deleteCartItem(request.getSession(), productId);
         } catch (NoSuchCartItemException e) {
-            message = String.format("Error while deleting product with id=%s from cart", productId);
+            message = String.format(ERROR_MESSAGE, productId);
         }
         response.sendRedirect(String.format(request.getContextPath() + "/cart?message=%s", message));
     }

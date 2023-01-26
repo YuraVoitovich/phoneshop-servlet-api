@@ -49,8 +49,12 @@
         </td>
         <td>
           <fmt:formatNumber value="${param.quantity}" var="quantity"/>
+          <p>
+            ${param.savedQuantity}
+          </p>
           <input class="price" name="quantity" value=${empty param.message ? "1" :
-          product.id eq param.productId ? param.savedQuantity : "1"}>
+                  (product.id eq param.productId) ? param.savedQuantity : "1"}>
+          <input type="hidden" name="productId" value="${product.id}">
           <c:if test = "${not empty param.message and param.message != 'success' and param.productId eq product.id}">
             <div class="error-message">
                 ${param.message}

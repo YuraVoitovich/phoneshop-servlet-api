@@ -55,7 +55,7 @@ public class CartServiceImpl implements CartService {
 
 
     private void checkIfCanBeAdded(int quantity, int stock) {
-        if (stock < quantity) {
+        if (stock < quantity && stock > 0) {
             throw new OutOfStockException(quantity, stock);
         }
     }

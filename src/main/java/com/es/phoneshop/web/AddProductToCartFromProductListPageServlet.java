@@ -12,8 +12,19 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class AddProductToCartFromProductListPageServlet extends HttpServlet {
+
+    private final String SUCCESS_MESSAGE = "success";
+
+    private final String NO_A_NUMBER_MESSAGE = "Quantity should be a number";
+
+    private final String EMPTY_MESSAGE = "Quantity is empty";
+
+    private final String OUT_OF_STOCK_MESSAGE = "Out of stock, available: %d, requested: %d";
 
     private CartService cartService;
 
@@ -28,11 +39,23 @@ public class AddProductToCartFromProductListPageServlet extends HttpServlet {
         this.cartService = cartService;
     }
 
+    private int findIndex(String[] productIdArray, String productId) {
+        for (int i = 1; i < productIdArray.length; i++) {
+            if (productIdArray[i].equals(productId)) {
+                return i - 1;
+            }
+        }
+        return -1;
+    }
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        Long productId = Long.parseLong(request.getParameter("productId"));
+        String productIdString = request.getParameter("productId");
+        Long productId = Long.parseLong(productIdString);
         String message;
-        String quantity = request.getParameter("quantity").trim();
+
+        String[] productIdArray = request.getParameterValues("productId");
+        String[] quantities = request.getParameterValues("quantity");
+        String quantity = quantities[findIndex(productIdArray, productIdString)];
         try {
             if (quantity.isEmpty()) {
                 throw new IllegalArgumentException();
@@ -40,14 +63,13 @@ public class AddProductToCartFromProductListPageServlet extends HttpServlet {
             Integer.parseInt(quantity);
             NumberFormat format = NumberFormat.getInstance(request.getLocale());
             cartService.add(request.getSession(), productId, format.parse(quantity).intValue());
-            message = "success";
+            message = SUCCESS_MESSAGE;
         } catch (ParseException | NumberFormatException e) {
-            message = "Quantity should be a number";
+            message = NO_A_NUMBER_MESSAGE;
         } catch (IllegalArgumentException e) {
-            message = "Quantity is empty";
+            message = EMPTY_MESSAGE;
         } catch (OutOfStockException e) {
-            message = "Out of stock, available: " + e.getAvailableStock()
-                    + ", requested: " + e.getRequestedStock();
+            message = String.format(OUT_OF_STOCK_MESSAGE,e.getAvailableStock(), e.getRequestedStock());
         }
 
         response.sendRedirect(String.format("%s/products?productId=%d&message=%s&savedQuantity=%s", request.getContextPath(),

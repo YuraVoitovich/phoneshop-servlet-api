@@ -25,6 +25,14 @@ public class ProductPageServlet extends HttpServlet {
 
     private RecentlyViewedService recentlyViewedService;
 
+    private final String SUCCESS_MESSAGE = "success";
+
+    private final String NO_A_NUMBER_MESSAGE = "Quantity should be a number";
+
+    private final String EMPTY_MESSAGE = "Quantity is empty";
+
+    private final String OUT_OF_STOCK_MESSAGE = "Out of stock, available: %d, requested: %d";
+
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
@@ -61,14 +69,14 @@ public class ProductPageServlet extends HttpServlet {
             Integer.parseInt(quantity);
             NumberFormat format = NumberFormat.getInstance(request.getLocale());
             cartService.add(request.getSession(), productId, format.parse(quantity).intValue());
-            message = "success";
+            message = SUCCESS_MESSAGE;
         } catch (ParseException | NumberFormatException e) {
-            message = "Quantity should be a number";
+            message = NO_A_NUMBER_MESSAGE;
         } catch (IllegalArgumentException e) {
-            message = "Quantity is empty";
+            message = EMPTY_MESSAGE;
         } catch (OutOfStockException e) {
-            message = "Out of stock, available: " + e.getAvailableStock()
-                    + ", requested: " + e.getRequestedStock();
+            message =  String.format(OUT_OF_STOCK_MESSAGE, e.getAvailableStock()
+                    , e.getRequestedStock());
         }
 
         response.sendRedirect(String.format("%s/products/%d?message=%s&savedQuantity=%s", request.getContextPath(),
