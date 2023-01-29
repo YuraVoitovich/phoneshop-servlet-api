@@ -5,6 +5,7 @@ import com.es.phoneshop.model.dao.ProductDao;
 import com.es.phoneshop.model.dao.enums.SortField;
 import com.es.phoneshop.model.dao.enums.SortOrder;
 import com.es.phoneshop.service.RecentlyViewedService;
+import com.es.phoneshop.service.ServiceProvider;
 import com.es.phoneshop.service.impl.RecentlyViewedServiceImpl;
 
 import javax.servlet.ServletConfig;
@@ -25,7 +26,7 @@ public class ProductListPageServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         productDao = DAOProvider.getInstance().getProductDao();
-        recentlyViewedService = DAOProvider.getInstance().getRecentlyViewedService();
+        recentlyViewedService = ServiceProvider.getInstance().getRecentlyViewedService();
     }
 
     @Override
