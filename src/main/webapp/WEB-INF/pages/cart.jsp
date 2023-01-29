@@ -3,14 +3,14 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 <jsp:useBean id="CartServiceImplCart" type="com.es.phoneshop.model.entity.Cart" scope="request"/>
-<tags:master pageTitle="Product List">
+<tags:master pageTitle="Cart">
 
   <header>
     <tags:header/>
   </header>
-  <p>
-    Welcome to Expert-Soft training!
-  </p>
+  <h1>
+    Cart
+  </h1>
 
   <c:if test = "${not empty param.message and param.message != 'success' and param.message != 'Product deleted successfully'}">
     <div class="error-message">
@@ -27,8 +27,10 @@
       Item deleted successfully
     </div>
   </c:if>
+  <form id="checkout"></form>
   <form method="post" action="${pageContext.servletContext.contextPath}/cart">
     <button>update</button>
+    <button form="checkout" formaction="${pageContext.servletContext.contextPath}/checkout" formmethod="get">checkout</button>
 
   <table>
     <thead>
