@@ -50,6 +50,7 @@ public class ProductPageServletTest {
     public void setup() throws ServletException {
         when(request.getParameter("quantity")).thenReturn("1");
         when(request.getLocale()).thenReturn(Locale.getDefault());
+        when(request.getRequestDispatcher(anyString())).thenReturn(requestDispatcher);
         servlet.init(servletConfig, productDao, recentlyViewedService, cartService);
         when(request.getPathInfo()).thenReturn("/1");
     }
@@ -63,7 +64,6 @@ public class ProductPageServletTest {
         when(productDao.getProduct(anyLong()))
                 .thenReturn(sampleProduct);
 
-        when(request.getRequestDispatcher(anyString())).thenReturn(requestDispatcher);
         servlet.doGet(request, response);
         verify(requestDispatcher).forward(request, response);
     }

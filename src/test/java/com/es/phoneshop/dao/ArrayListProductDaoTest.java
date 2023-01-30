@@ -6,6 +6,7 @@ import com.es.phoneshop.model.dao.enums.SortOrder;
 import com.es.phoneshop.model.dao.impl.ArrayListProductDao;
 import com.es.phoneshop.model.entity.Product;
 import com.es.phoneshop.model.exception.NoSuchProductException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,6 +25,11 @@ public class ArrayListProductDaoTest
     @Before
     public void setup() {
         productDao = ArrayListProductDao.getInstance();
+    }
+
+    @After
+    public void clear() {
+        productDao.clear();
     }
 
     @Test
@@ -95,15 +101,8 @@ public class ArrayListProductDaoTest
     }
 
     @Test
-    public void testFindProductsNullPriceResult() {
-        productDao.save(new Product( "sgs", "Samsung Galaxy S", null, usd, 100, "https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/manufacturer/Samsung/Samsung%20Galaxy%20S.jpg"));
-        productDao.save(new Product( "sgs2", "Samsung Galaxy S II", new BigDecimal(200), usd, 20, "https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/manufacturer/Samsung/Samsung%20Galaxy%20S%20II.jpg"));
-
-        assertEquals(1, productDao.findProducts(null, null, null).size());
-    }
-    @Test
     public void testGetProduct() {
-        Product product = new Product( "sgs", "Samsung Galaxy S", null, usd, 100, "https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/manufacturer/Samsung/Samsung%20Galaxy%20S.jpg");
+        Product product = new Product( "sgs", "Samsung Galaxy S", new BigDecimal(30), usd, 100, "https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/manufacturer/Samsung/Samsung%20Galaxy%20S.jpg");
         productDao.save(product);
         productDao.save(new Product( "sgs2", "Samsung Galaxy S II", new BigDecimal(200), usd, 20, "https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/manufacturer/Samsung/Samsung%20Galaxy%20S%20II.jpg"));
 

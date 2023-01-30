@@ -1,5 +1,7 @@
 package com.es.phoneshop.web;
 
+import com.es.phoneshop.model.dao.ProductDao;
+import com.es.phoneshop.service.RecentlyViewedService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,12 +29,18 @@ public class ProductListPageServletTest {
     private RequestDispatcher requestDispatcher;
 
     @Mock
+    private ProductDao productDao;
+
+    @Mock
+    private RecentlyViewedService recentlyViewedService;
+    @Mock
     private ServletConfig servletConfig;
     private final ProductListPageServlet servlet = new ProductListPageServlet();
 
     @Before
     public void setup() throws ServletException {
-        servlet.init(servletConfig);
+        servlet.init(servletConfig, recentlyViewedService, productDao);
+        when(recentlyViewedService.getRecentlyViewedBySession(any())).thenReturn(null);
         when(request.getRequestDispatcher(anyString())).thenReturn(requestDispatcher);
     }
 

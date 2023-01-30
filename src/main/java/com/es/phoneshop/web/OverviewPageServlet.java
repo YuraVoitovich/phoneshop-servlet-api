@@ -45,8 +45,10 @@ public class OverviewPageServlet extends HttpServlet {
         this.orderDataValidationService = ServiceProvider.getInstance().getOrderDataValidationService();
     }
 
-    public void init(ServletConfig config, CartService cartService) throws ServletException {
+    public void init(ServletConfig config, OrderService orderService) throws ServletException {
         super.init(config);
+        this.orderService = orderService;
+        this.orderDataValidationService = ServiceProvider.getInstance().getOrderDataValidationService();
     }
 
     @Override

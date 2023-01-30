@@ -29,6 +29,12 @@ public class ProductListPageServlet extends HttpServlet {
         recentlyViewedService = ServiceProvider.getInstance().getRecentlyViewedService();
     }
 
+    public void init(ServletConfig config, RecentlyViewedService recentlyViewedService, ProductDao productDao) throws ServletException {
+        super.init(config);
+        this.productDao = productDao;
+        this.recentlyViewedService = recentlyViewedService;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         SortField sortField = Optional.ofNullable(request.getParameter("sortfield")).map(SortField::valueOf).orElse(null);

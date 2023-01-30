@@ -44,6 +44,17 @@ public class ArrayListProductDao implements ProductDao {
 
     }
 
+
+    @Override
+    public void clear() {
+        writeLock.lock();
+        try {
+            this.products.clear();
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
     @Override
     public Product getProduct(Long id) {
         if (id == null) {
