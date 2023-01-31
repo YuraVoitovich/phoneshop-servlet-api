@@ -141,7 +141,13 @@
         <span style="color:red">*</span>
       </td>
       <td>
-        <tags:orderFormField fieldName="phone" fieldValue="${param.phone}" errorValue="${messages['phone']}"/>
+        <c:set var = "error" value = "${messages['phone']}"/>
+        <input type="text" pattern="^\+375(\s+)?\(?(17|29|33|44)\)?(\s+)?[0-9]{3}-[0-9]{2}-[0-9]{2}$" placeholder="+375 (XX) XXX XX XX" name="phone" value="${param.phone}"/>
+        <c:if test = "${not empty error}">
+          <div class="error-message">
+              ${error}
+          </div>
+        </c:if>
       </td>
     </tr>
 

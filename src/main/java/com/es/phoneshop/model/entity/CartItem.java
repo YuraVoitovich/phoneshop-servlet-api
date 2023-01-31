@@ -17,7 +17,7 @@ public class CartItem implements Cloneable, Serializable {
         try {
             cartItem = (CartItem) super.clone();
         } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Clone is not supported");
         }
         return cartItem;
     }

@@ -29,8 +29,12 @@
   </c:if>
   <form id="checkout"></form>
   <form method="post" action="${pageContext.servletContext.contextPath}/cart">
-    <button>update</button>
-    <button form="checkout" formaction="${pageContext.servletContext.contextPath}/checkout" formmethod="get">checkout</button>
+    <c:if test="${not empty CartServiceImplCart.items}">
+      <button>update</button>
+      <button form="checkout" formaction="${pageContext.servletContext.contextPath}/checkout" formmethod="get">
+        checkout
+      </button>
+    </c:if>
 
   <table>
     <thead>

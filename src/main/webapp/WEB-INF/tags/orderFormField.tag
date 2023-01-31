@@ -5,7 +5,7 @@
 <%@ attribute name="errorValue" required="true"%>
 
 <c:set var = "error" value = "${errorValue}"/>
-<input name="${fieldName}" value="${not empty error ? fieldValue : ''}"/>
+<input name="${fieldName}" value="${fieldValue}"/>
 <c:if test = "${not empty error}">
     <div class="error-message">
             ${error}

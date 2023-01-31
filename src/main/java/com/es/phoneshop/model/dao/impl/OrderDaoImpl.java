@@ -2,6 +2,7 @@ package com.es.phoneshop.model.dao.impl;
 
 import com.es.phoneshop.model.dao.OrderDao;
 import com.es.phoneshop.model.entity.Order;
+import com.es.phoneshop.model.exception.NoSuchOrderException;
 import com.es.phoneshop.model.exception.NoSuchProductException;
 
 import java.util.*;
@@ -21,6 +22,18 @@ public class OrderDaoImpl implements OrderDao {
         return InstanceHolder.INSTANCE;
     }
 
+    private void checkSecureIdParameter(String secureId) {
+        if (secureId == null) {
+            throw new IllegalArgumentException("secureId can not be null");
+        }
+    }
+
+    private void checkIdParameter(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("id can not be null");
+        }
+    }
+
     private OrderDaoImpl() {
         this.orders = new ArrayList<>();
         ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -31,16 +44,14 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public Order getOrderBySecureId(String secureId) {
-        if (secureId == null) {
-            throw new IllegalArgumentException("secureId can not be null");
-        }
+        checkSecureIdParameter(secureId);
         readLock.lock();
         Order order;
         try {
             order = orders.stream()
                     .filter(currentOrder -> secureId.equals(currentOrder.getSecureId()))
                     .findAny()
-                    .orElseThrow(() -> new NoSuchProductException(String.format("Order with id=%s not found", secureId)));
+                    .orElseThrow(() -> new NoSuchOrderException(String.format("Order with id=%s not found", secureId)));
         } finally {
             readLock.unlock();
         }
@@ -49,16 +60,14 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public Order getOrder(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("Id can not be null");
-        }
+        checkIdParameter(id);
         readLock.lock();
         Order order;
         try {
             order = orders.stream()
                     .filter(currentOrder -> id.equals(currentOrder.getId()))
                     .findAny()
-                    .orElseThrow(() -> new NoSuchProductException(String.format("Order with id=%s not found", id)));
+                    .orElseThrow(() -> new NoSuchOrderException(String.format("Order with id=%s not found", id)));
         } finally {
             readLock.unlock();
         }

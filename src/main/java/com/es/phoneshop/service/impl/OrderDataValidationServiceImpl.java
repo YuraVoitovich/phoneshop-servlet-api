@@ -17,7 +17,7 @@ public class OrderDataValidationServiceImpl implements OrderDataValidationServic
 
     @Override
     public boolean validatePhoneNumber(String phoneNumber) {
-        return (phoneNumber != null) && phoneNumber.matches("^\\+375[0-9]{9}$");
+        return (phoneNumber != null) && phoneNumber.matches("^\\+375(\\s+)?\\(?(17|29|33|44)\\)?(\\s+)?[0-9]{3}-[0-9]{2}-[0-9]{2}$");
     }
 
     @Override
