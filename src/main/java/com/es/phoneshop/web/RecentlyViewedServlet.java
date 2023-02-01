@@ -1,7 +1,7 @@
 package com.es.phoneshop.web;
 
-import com.es.phoneshop.model.dao.DAOProvider;
 import com.es.phoneshop.service.RecentlyViewedService;
+import com.es.phoneshop.service.ServiceProvider;
 import com.es.phoneshop.service.impl.RecentlyViewedServiceImpl;
 
 import javax.servlet.ServletConfig;
@@ -18,7 +18,7 @@ public class RecentlyViewedServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        recentlyViewedService = DAOProvider.getInstance().getRecentlyViewedService();
+        recentlyViewedService = ServiceProvider.getInstance().getRecentlyViewedService();
     }
 
     @Override

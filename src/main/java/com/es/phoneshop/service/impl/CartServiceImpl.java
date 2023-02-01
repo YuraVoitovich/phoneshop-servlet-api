@@ -10,6 +10,7 @@ import com.es.phoneshop.model.exception.OutOfStockException;
 import com.es.phoneshop.service.CartService;
 
 import javax.servlet.http.HttpSession;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -54,9 +55,33 @@ public class CartServiceImpl implements CartService {
     }
 
 
+    private void recalculateTotalQuantity(Cart cart) {
+        cart.setTotalQuantity(cart.getItems()
+                .stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum());
+    }
+
+    private void recalculateTotalCost(Cart cart) {
+        cart.setTotalCost(cart.getItems()
+                .stream()
+                .map(cartItem -> cartItem.getProduct().getPrice().multiply(new BigDecimal(cartItem.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+    }
+
     private void checkIfCanBeAdded(int quantity, int stock) {
         if (stock < quantity && stock > 0) {
             throw new OutOfStockException(quantity, stock);
+        }
+    }
+
+    @Override
+    public void clearCartBySession(HttpSession session) {
+        Cart cart = getCartBySession(session);
+        synchronized (session) {
+            cart.getItems().clear();
+            recalculateTotalQuantity(cart);
+            recalculateTotalCost(cart);
         }
     }
 
@@ -66,6 +91,8 @@ public class CartServiceImpl implements CartService {
         Optional<CartItem> cartItemOptional = findCartItemByProductId(cart, productId);
         synchronized (session) {
             cart.getItems().remove(cartItemOptional.orElseThrow(NoSuchCartItemException::new));
+            recalculateTotalQuantity(cart);
+            recalculateTotalCost(cart);
         }
     }
 
@@ -118,6 +145,8 @@ public class CartServiceImpl implements CartService {
                 checkIfCanBeAdded(quantity, product.getStock());
                 cart.add(new CartItem(product, quantity));
             }
+            recalculateTotalCost(cart);
+            recalculateTotalQuantity(cart);
         }
     }
 
@@ -142,6 +171,8 @@ public class CartServiceImpl implements CartService {
                 checkIfCanBeAdded(quantity, product.getStock());
                 cart.add(new CartItem(product, quantity));
             }
+            recalculateTotalQuantity(cart);
+            recalculateTotalCost(cart);
         }
         return isChanged;
     }

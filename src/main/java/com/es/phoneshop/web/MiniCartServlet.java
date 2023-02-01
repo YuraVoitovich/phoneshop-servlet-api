@@ -1,7 +1,7 @@
 package com.es.phoneshop.web;
 
 import com.es.phoneshop.service.CartService;
-import com.es.phoneshop.service.impl.CartServiceImpl;
+import com.es.phoneshop.service.ServiceProvider;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -19,7 +19,7 @@ public class MiniCartServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        cartService = CartServiceImpl.getInstance();
+        cartService = ServiceProvider.getInstance().getCartService();
     }
 
     public void init(ServletConfig config, CartService cartService) throws ServletException {

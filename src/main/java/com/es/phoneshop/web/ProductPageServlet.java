@@ -6,7 +6,7 @@ import com.es.phoneshop.model.entity.Product;
 import com.es.phoneshop.model.exception.OutOfStockException;
 import com.es.phoneshop.service.CartService;
 import com.es.phoneshop.service.RecentlyViewedService;
-import com.es.phoneshop.service.impl.CartServiceImpl;
+import com.es.phoneshop.service.ServiceProvider;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -37,8 +37,8 @@ public class ProductPageServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         productDao = DAOProvider.getInstance().getProductDao();
-        cartService = CartServiceImpl.getInstance();
-        recentlyViewedService = DAOProvider.getInstance().getRecentlyViewedService();
+        cartService = ServiceProvider.getInstance().getCartService();
+        recentlyViewedService = ServiceProvider.getInstance().getRecentlyViewedService();
     }
 
     public void init(ServletConfig config, ProductDao productDao, RecentlyViewedService recentlyViewedService, CartService cartService) throws ServletException {
