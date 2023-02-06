@@ -5,42 +5,65 @@
 <%@ page import = "com.es.phoneshop.service.impl.RecentlyViewedServiceImpl"%>
 <%@ page import="com.es.phoneshop.model.entity.Product" %>
 <jsp:useBean id="products" type="java.util.ArrayList" scope="request"/>
-<jsp:useBean id="RecentlyViewedServiceImplRecentlyViewed" type="java.util.LinkedList" scope="request"/>
 <tags:master pageTitle="Product List">
 
   <header>
     <tags:header/>
   </header>
   <p>
-    Welcome to Expert-Soft training!
+    Advanced Search
   </p>
-  <form method="get" action="${pageContext.servletContext.contextPath}/products/advanced-search">
-    <button> Advanced Search </button>
-  </form>
-  <form>
-    <input name="query" value="${param.query}">
-    <button>Search</button>
-  </form>
 
+  <form method="post" action="${pageContext.servletContext.contextPath}/products/advanced-search">
+    <p>
+      ${param.method}
+      ${param.query}wefwef
+    Description <input name="description" value="${param.description}">
+      <select name="searchDescriptionType" value="${param.method}">
+      <c:forEach var="method" items="${methods}">
+        <option>${method}</option>
+      </c:forEach>
+    </select>
+    </p>
+    <p>
+    Min price <input name="minPrice" value="${not empty param.minPrice ? param.minPrice : "0"}">
+      <c:if test = "${not empty messages['minPriceString']}">
+    <div class="error-message">
+      ${messages['minPriceString']}
+    </div>
+    </c:if>
+    </p>
+    <p>
+    Max price <input name="maxPrice" value="${not empty param.maxPrice ? param.maxPrice : "0"}">
+      <c:if test = "${not empty messages['minPriceString']}">
+    <div class="error-message">
+        ${messages['maxPriceString']}
+    </div>
+    </c:if>
+    </p>
+
+    <button >Search</button>
+  </form>
+  <c:if test="${ not empty products}">
   <form method="post" id="add">
+
   <table>
     <thead>
       <tr>
         <td>Image</td>
         <td>Description
-          <tags:sort sortfield="DESCRIPTION" order="ASC"/>
-          <tags:sort sortfield="DESCRIPTION" order="DESC"/>
+
         </td>
         <td class="price">
           Quantity
         </td>
         <td class="price">
           Price
-          <tags:sort sortfield="PRICE" order="ASC"/>
-          <tags:sort sortfield="PRICE" order="DESC"/>
+
         </td>
       </tr>
     </thead>
+
 
     <c:forEach var="product" items="${products}">
       <tr>
@@ -82,8 +105,8 @@
 
   </table>
   </form>
-  <tags:recentlyViewed/>
-  <tags:minicart count="3"/>
+  </c:if>
+
 </tags:master>
 <footer>
   <tags:footer/>
