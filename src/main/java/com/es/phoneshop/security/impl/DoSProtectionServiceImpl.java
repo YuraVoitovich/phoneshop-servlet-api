@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DoSProtectionServiceImpl implements DoSProtectionService {
 
-    private static final long THRESHOLD = 10;
+    private static final long THRESHOLD = 30;
 
     private ScheduledExecutorService executorService;
 
