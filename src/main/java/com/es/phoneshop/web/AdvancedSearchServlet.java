@@ -4,8 +4,6 @@ import com.es.phoneshop.model.dao.DAOProvider;
 import com.es.phoneshop.model.dao.ProductDao;
 import com.es.phoneshop.model.dao.enums.SearchDescriptionType;
 import com.es.phoneshop.model.entity.Product;
-import com.es.phoneshop.service.RecentlyViewedService;
-import com.es.phoneshop.service.ServiceProvider;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -32,24 +30,16 @@ public class AdvancedSearchServlet extends HttpServlet {
 
     private final String EMPTY_MESSAGE = "Value is empty";
 
-    private final String OUT_OF_STOCK_MESSAGE = "Out of stock, available: %d, requested: %d";
-
-    private final String ERROR_MESSAGE = "There where errors while updating cart";
-
-
-    private RecentlyViewedService recentlyViewedService;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         productDao = DAOProvider.getInstance().getProductDao();
-        recentlyViewedService = ServiceProvider.getInstance().getRecentlyViewedService();
     }
 
-    public void init(ServletConfig config, RecentlyViewedService recentlyViewedService, ProductDao productDao) throws ServletException {
+    public void init(ServletConfig config, ProductDao productDao) throws ServletException {
         super.init(config);
         this.productDao = productDao;
-        this.recentlyViewedService = recentlyViewedService;
     }
 
     @Override
@@ -63,16 +53,8 @@ public class AdvancedSearchServlet extends HttpServlet {
 
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String minPriceString = request.getParameter("minPrice").trim();
-        String maxPriceString = request.getParameter("maxPrice").trim();
-        String description = request.getParameter("description").trim();
-        String searchDescriptionType = request.getParameter("searchDescriptionType");
-        NumberFormat format = NumberFormat.getInstance(request.getLocale());
-        Map<String, String> messages = new HashMap<>();
+    private int parseMinPriceString(Map<String, String> messages, String minPriceString, NumberFormat format) {
         int minPrice = 0;
-        int maxPrice = 0;
         try {
             if (minPriceString.isEmpty()) {
                 throw new IllegalArgumentException();
@@ -84,22 +66,39 @@ public class AdvancedSearchServlet extends HttpServlet {
         } catch (IllegalArgumentException e) {
             messages.put("minPriceString", EMPTY_MESSAGE);
         }
+        return minPrice;
 
+    }
+
+    private int parseMaxPriceString(Map<String, String> messages, String minPriceString, NumberFormat format) {
+        int maxPrice = 0;
         try {
-
-            if (maxPriceString.isEmpty()) {
+            if (minPriceString.isEmpty()) {
                 throw new IllegalArgumentException();
             }
-            Integer.parseInt(maxPriceString);
-
-            maxPrice = format.parse(maxPriceString).intValue();
-
-
+            Integer.parseInt(minPriceString);
+            maxPrice = format.parse(minPriceString).intValue();
         } catch (ParseException | NumberFormatException e) {
-            messages.put("maxPriceString",NO_A_NUMBER_MESSAGE);
+            messages.put("minPriceString", NO_A_NUMBER_MESSAGE);
         } catch (IllegalArgumentException e) {
-            messages.put("maxPriceString",EMPTY_MESSAGE);
+            messages.put("minPriceString", EMPTY_MESSAGE);
         }
+        return maxPrice;
+
+    }
+
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String minPriceString = request.getParameter("minPrice").trim();
+        String maxPriceString = request.getParameter("maxPrice").trim();
+        String description = request.getParameter("description").trim();
+        String searchDescriptionType = request.getParameter("searchDescriptionType");
+        NumberFormat format = NumberFormat.getInstance(request.getLocale());
+        Map<String, String> messages = new HashMap<>();
+        int minPrice = parseMinPriceString(messages, minPriceString, format);
+        int maxPrice = parseMaxPriceString(messages, maxPriceString, format);
+
 
         List<SearchDescriptionType> methods = productDao.getSearchDescriptionTypeMethods();
         request.setAttribute("methods", methods);
