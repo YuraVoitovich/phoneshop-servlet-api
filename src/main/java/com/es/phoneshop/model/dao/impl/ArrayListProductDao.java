@@ -1,5 +1,6 @@
 package com.es.phoneshop.model.dao.impl;
 
+import com.es.phoneshop.model.dao.enums.SearchDescriptionType;
 import com.es.phoneshop.model.dao.enums.SortField;
 import com.es.phoneshop.model.dao.enums.SortOrder;
 import com.es.phoneshop.model.entity.Product;
@@ -7,6 +8,7 @@ import com.es.phoneshop.model.dao.ProductDao;
 import com.es.phoneshop.model.exception.NoSuchProductException;
 import com.es.phoneshop.utils.Pair;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -22,6 +24,8 @@ public class ArrayListProductDao implements ProductDao {
     private final Lock writeLock;
     private final Lock readLock;
     private final EnumMap<SortField, Comparator<Object>> sortFieldComparators;
+
+    private List<SearchDescriptionType> methods;
 
 
     private static class InstanceHolder {
@@ -41,6 +45,7 @@ public class ArrayListProductDao implements ProductDao {
                 Comparator.comparing(o -> ((Product) o).getDescription()));
         sortFieldComparators.put(SortField.PRICE,
                 Comparator.comparing(o -> ((Product) o).getPrice()));
+        this.methods = Arrays.asList(SearchDescriptionType.values());
 
     }
 
@@ -113,9 +118,29 @@ public class ArrayListProductDao implements ProductDao {
         }
     }
 
+    private List<Product> processQuery(Stream<Product> filteredStream, String query) {
+        List<Product> foundProducts;
+
+        Pattern pattern = Pattern.compile(Arrays.stream(query.trim().split("\\s"))
+                .map(o -> "(" + o + ")").collect(Collectors.joining("|")));
+
+        foundProducts = filteredStream
+                .map(o -> new Pair<Product, Integer>(o, countMatches(pattern, o.getDescription())))
+                .filter(o -> o.snd > 0)
+                .sorted(createQueryComparator())
+                .map(o -> o.fst)
+                .collect(Collectors.toList());
+        return foundProducts;
+    }
+
     private List<Product> processEmptyQuery(Stream<Product> filteredStream, Comparator<Object> sortComparator) {
         return sortComparator == null ? filteredStream.collect(Collectors.toList())
                 : filteredStream.sorted(sortComparator).collect(Collectors.toList());
+
+    }
+
+    private List<Product> processAdvancedEmptyQuery(Stream<Product> filteredStream) {
+        return filteredStream.collect(Collectors.toList());
 
     }
 
@@ -134,6 +159,52 @@ public class ArrayListProductDao implements ProductDao {
         }
         return sortComparator;
     }
+
+
+    private List<Product> processAdvancedQuery(Stream<Product> filteredStream, String query, SearchDescriptionType type) {
+        switch (type) {
+            case ANY_WORD: {
+                return processQuery(filteredStream, query);
+            }
+            case ALL_WORDS: {
+                return filteredStream
+                        .filter(currentProduct -> currentProduct.getDescription().equals(query))
+                        .collect(Collectors.toList());
+            }
+            default: {
+                throw new EnumConstantNotPresentException(SearchDescriptionType.class, type.toString());
+            }
+        }
+    }
+
+    @Override
+    public List<SearchDescriptionType> getSearchDescriptionTypeMethods() {
+        return this.methods;
+    }
+
+    @Override
+    public List<Product> findProducts(String query, BigDecimal minPrice, BigDecimal maxPrice, SearchDescriptionType searchDescriptionType) {
+        List<Product> foundProducts;
+        readLock.lock();
+        try {
+            Stream<Product> filteredStream = products.stream()
+                    .filter(currentProduct -> currentProduct.getPrice() != null)
+                    .filter(currentProduct -> currentProduct.getStock() > 0)
+                    .filter(currentProduct -> currentProduct.getPrice().compareTo(minPrice) > 0)
+                    .filter(currentProduct -> currentProduct.getPrice().compareTo(maxPrice) < 0);
+
+            if (query == null || query.isEmpty()) {
+                foundProducts = processAdvancedEmptyQuery(filteredStream);
+            } else {
+                foundProducts = processAdvancedQuery(filteredStream, query, searchDescriptionType);
+            }
+        } finally {
+            readLock.unlock();
+        }
+        return foundProducts;
+    }
+
+
     @Override
     public List<Product> findProducts(String query, SortField sortField, SortOrder sortOrder) {
         List<Product> foundProducts;

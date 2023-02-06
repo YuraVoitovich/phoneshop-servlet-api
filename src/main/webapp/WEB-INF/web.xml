@@ -23,6 +23,7 @@
     <url-pattern>/products</url-pattern>
   </servlet-mapping>
 
+
   <servlet>
     <servlet-name>product</servlet-name>
     <servlet-class>com.es.phoneshop.web.ProductPageServlet</servlet-class>
@@ -31,6 +32,17 @@
     <servlet-name>product</servlet-name>
     <url-pattern>/products/*</url-pattern>
   </servlet-mapping>
+
+
+  <servlet>
+    <servlet-name>advancedSearch</servlet-name>
+    <servlet-class>com.es.phoneshop.web.AdvancedSearchServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>advancedSearch</servlet-name>
+    <url-pattern>/products/advanced-search</url-pattern>
+  </servlet-mapping>
+
 
   <servlet>
     <servlet-name>miniCart</servlet-name>
